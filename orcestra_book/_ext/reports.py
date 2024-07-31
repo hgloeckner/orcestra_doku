@@ -84,10 +84,48 @@ class CrewDirective(SphinxDirective):
             name=[list(item.values())[0] for item in crew],
             job=[list(item.values())[1] for item in crew],
         )
-        # table = nodes.table()
 
-        paragraph_node = nodes.paragraph(text=table_dict)
-        return [paragraph_node]
+        table = nodes.table()  # Create a table node
+        tgroup = nodes.tgroup(
+            cols=len(table_dict)
+        )  # Create a tgroup node with the number of columns equal to the dictionary keys
+        table += tgroup  # Add the tgroup to the table
+
+        for _ in table_dict:
+            tgroup += nodes.colspec(
+                colwidth=1
+            )  # Add a colspec node for each column with a default width
+
+        thead = nodes.thead()  # Create a thead node for the table header
+        tgroup += thead  # Add the thead to the tgroup
+        tbody = nodes.tbody()  # Create a tbody node for the table body
+        tgroup += tbody  # Add the tbody to the tgroup
+
+        # Create header row
+        header_row = nodes.row()  # Create a row node for the header
+        for key in table_dict.keys():
+            entry = nodes.entry()  # Create an entry node for each column header
+            entry += nodes.paragraph(
+                text=key
+            )  # Add the column header text to the entry
+            header_row += entry  # Add the entry to the header row
+        thead += header_row  # Add the header row to the thead
+
+        # Create data rows
+        num_rows = len(
+            next(iter(table_dict.values()))
+        )  # Determine the number of rows from the first column's length
+        for i in range(num_rows):
+            row = nodes.row()  # Create a row node for each data row
+            for key in table_dict.keys():
+                entry = nodes.entry()  # Create an entry node for each cell
+                entry += nodes.paragraph(
+                    text=table_dict[key][i]
+                )  # Add the cell text to the entry
+                row += entry  # Add the entry to the row
+            tbody += row  # Add the row to the tbody
+
+        return [table]  # Return the constructed table node
 
 
 class FrontmatterRole(SphinxRole):
