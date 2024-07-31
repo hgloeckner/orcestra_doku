@@ -74,11 +74,19 @@ class BadgesRole(SphinxRole):
 
 
 class CrewDirective(SphinxDirective):
-    has_content = True
+    # has_content = True
 
     def run(self):
         """Access variables defined in document front matter."""
-        paragraph_node = nodes.paragraph(text="Hello, world!")
+        fm = load_frontmatter(self.env.doc2path(self.env.docname))
+        crew = fm["crew"]
+        table_dict = dict(
+            name=[list(item.values())[0] for item in crew],
+            job=[list(item.values())[1] for item in crew],
+        )
+        # table = nodes.table()
+
+        paragraph_node = nodes.paragraph(text=table_dict)
         return [paragraph_node]
 
 
