@@ -8,7 +8,7 @@ from functools import lru_cache, partial
 
 import yaml
 from jinja2 import Template
-from sphinx.util.docutils import SphinxRole
+from sphinx.util.docutils import SphinxRole, SphinxDirective
 
 
 @lru_cache
@@ -73,6 +73,15 @@ class BadgesRole(SphinxRole):
         return [node], []
 
 
+class CrewDirective(SphinxDirective):
+    has_content = True
+
+    def run(self):
+        """Access variables defined in document front matter."""
+        paragraph_node = nodes.paragraph(text="Hello, world!")
+        return [paragraph_node]
+
+
 class FrontmatterRole(SphinxRole):
     def run(self):
         """Access variables defined in document front matter."""
@@ -83,6 +92,7 @@ class FrontmatterRole(SphinxRole):
 
 class LogoRole(SphinxRole):
     """Add a small campaign logo to the upper-right corner of a page."""
+
     def run(self):
         src = pathlib.Path(self.env.srcdir)
 
@@ -95,14 +105,15 @@ class LogoRole(SphinxRole):
             rel_path = logo_path[0].relative_to(doc_path.parent, walk_up=True)
 
             node = nodes.image(uri=rel_path.as_posix(), alt=f"{self.text} logo")
-            node['classes'].append('campaign-logo')  # Ad
+            node["classes"].append("campaign-logo")  # Ad
 
         return [node], []
 
 
 def collect_halo_refs(src, flight_id):
-    refs =  ", ".join(
-        f"[{t}](../{t}s/{flight_id})" for t in ("plan", "report")
+    refs = ", ".join(
+        f"[{t}](../{t}s/{flight_id})"
+        for t in ("plan", "report")
         if (src / f"{t}s" / f"{flight_id}.md").is_file()
     )
 
@@ -131,7 +142,9 @@ def write_ship_table(app):
     src = pathlib.Path(app.srcdir)
     reports = (src / "reports").glob("METEOR-[0-9]*.md")
 
-    frontmatters = {fm["report_id"]: fm for fm in map(load_frontmatter, sorted(reports))}
+    frontmatters = {
+        fm["report_id"]: fm for fm in map(load_frontmatter, sorted(reports))
+    }
 
     with open(src / "_templates" / "operation_rvmeteor.md", "r") as fp:
         templ = fp.read()
@@ -149,6 +162,7 @@ def setup(app):
     app.add_role("badges", BadgesRole())
     app.add_role("front", FrontmatterRole())
     app.add_role("logo", LogoRole())
+    app.add_directive("crew", CrewDirective)
 
     return {
         "version": "0.1",
