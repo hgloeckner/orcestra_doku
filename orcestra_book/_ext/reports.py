@@ -81,51 +81,37 @@ class CrewDirective(SphinxDirective):
         fm = load_frontmatter(self.env.doc2path(self.env.docname))
         crew = fm["crew"]
         table_dict = dict(
-            name=[list(item.values())[0] for item in crew],
-            job=[list(item.values())[1] for item in crew],
+            Name=[list(item.values())[0] for item in crew],
+            Job=[list(item.values())[1] for item in crew],
         )
 
-        table = nodes.table()  # Create a table node
-        tgroup = nodes.tgroup(
-            cols=len(table_dict)
-        )  # Create a tgroup node with the number of columns equal to the dictionary keys
-        table += tgroup  # Add the tgroup to the table
+        # create table with correct number of columns
+        table = nodes.table()
+        tgroup = nodes.tgroup(cols=len(table_dict))
+        table += tgroup
 
         for _ in table_dict:
-            tgroup += nodes.colspec(
-                colwidth=1
-            )  # Add a colspec node for each column with a default width
+            tgroup += nodes.colspec(colwidth=1)
 
-        thead = nodes.thead()  # Create a thead node for the table header
-        tgroup += thead  # Add the thead to the tgroup
-        tbody = nodes.tbody()  # Create a tbody node for the table body
-        tgroup += tbody  # Add the tbody to the tgroup
-
-        # Create header row
-        header_row = nodes.row()  # Create a row node for the header
+        # Create header
+        thead = nodes.thead()
+        tgroup += thead
+        header_row = nodes.row()
         for key in table_dict.keys():
-            entry = nodes.entry()  # Create an entry node for each column header
-            entry += nodes.paragraph(
-                text=key
-            )  # Add the column header text to the entry
-            header_row += entry  # Add the entry to the header row
-        thead += header_row  # Add the header row to the thead
+            header_row += nodes.entry("", nodes.paragraph(text=key))
+        thead += header_row
 
-        # Create data rows
-        num_rows = len(
-            next(iter(table_dict.values()))
-        )  # Determine the number of rows from the first column's length
+        # Create table body
+        tbody = nodes.tbody()
+        tgroup += tbody
+        num_rows = len(list(table_dict.values())[0])
         for i in range(num_rows):
-            row = nodes.row()  # Create a row node for each data row
+            row = nodes.row()
             for key in table_dict.keys():
-                entry = nodes.entry()  # Create an entry node for each cell
-                entry += nodes.paragraph(
-                    text=table_dict[key][i]
-                )  # Add the cell text to the entry
-                row += entry  # Add the entry to the row
-            tbody += row  # Add the row to the tbody
+                row += nodes.entry("", nodes.paragraph(text=table_dict[key][i]))
+            tbody += row
 
-        return [table]  # Return the constructed table node
+        return [table]
 
 
 class FrontmatterRole(SphinxRole):
